@@ -1,0 +1,44 @@
+services:
+
+  mysql-db:
+    image: mysql:8.0
+    command: --default-authentication-plugin=mysql_native_password
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_DATABASE: metrics
+    ports:
+      - "3306:3306"
+
+  mongo-db:
+    image: mongo:7.0
+    ports:
+      - "27017:27017"
+
+  auth-service:
+    build: ./auth-service
+    ports:
+      - "5002:5000"
+
+  enter-data:
+    build: ./enter-data
+    ports:
+      - "5000:5000"
+    depends_on:
+      - mysql-db
+      - auth-service
+
+  analytics-service:
+    build: ./analytics-service
+    ports:
+      - "5003:5000"
+    depends_on:
+      - mysql-db
+      - mongo-db
+
+  show-results:
+    build: ./show-results
+    ports:
+      - "5001:3000"
+    depends_on:
+      - mongo-db
+      - auth-service
